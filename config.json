@@ -5,19 +5,49 @@
         "name": "ASML",
         "symbol": "ASML.AS",
         "type": "stock",
-        "shares": 10
+        "shares": 4
       },
       {
         "name": "GTT",
         "symbol": "GTT.PA",
         "type": "stock",
-        "shares": 10
+        "shares": 13
       },
       {
         "name": "Air Liquide",
         "symbol": "AI.PA",
         "type": "stock",
-        "shares": 10
+        "shares": 14
+      },
+      {
+        "name": "Schneider Electric",
+        "symbol": "SU.PA",
+        "type": "stock",
+        "shares": 9
+      },
+      {
+        "name": "Hermès",
+        "symbol": "RMS.PA",
+        "type": "stock",
+        "shares": 1
+      },
+      {
+        "name": "Airbus",
+        "symbol": "AIR.PA",
+        "type": "stock",
+        "shares": 1
+      },
+      {
+        "name": "Safran",
+        "symbol": "SAF.PA",
+        "type": "stock",
+        "shares": 5
+      },
+      {
+        "name": "BNP Paribas Easy SP 500 UCITS ETF EUR Capitalisation",
+        "symbol": "ESE.PA",
+        "type": "etf",
+        "shares": 175
       }
     ],
     "cryptos": [
@@ -25,36 +55,30 @@
         "name": "Bitcoin",
         "symbol": "BTC-USD",
         "type": "crypto",
-        "shares": 1
-      },
-      {
-        "name": "Ethereum",
-        "symbol": "ETH-USD",
-        "type": "crypto",
-        "shares": 1
+        "shares": 0.08057826
       }
     ]
   },
   "accounts": [
     {
       "name": "Compte principal BP",
-      "value": 10
+      "value": 12020.6
     },
     {
       "name": "Livret A",
-      "value": 10
+      "value": 23260.18
     },
     {
       "name": "Livret Jeune",
-      "value": 10
+      "value": 1791.30
     },
     {
       "name": "Compte Boursobank",
-      "value": 10
+      "value": 222.28
     },
     {
       "name": "Cash Bourse",
-      "value": 10
+      "value": 63.66
     }
   ]
 }
