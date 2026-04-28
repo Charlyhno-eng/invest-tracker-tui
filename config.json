@@ -1,0 +1,60 @@
+{
+  "portfolio": {
+    "stocks": [
+      {
+        "name": "ASML",
+        "symbol": "ASML.AS",
+        "type": "stock",
+        "shares": 10
+      },
+      {
+        "name": "GTT",
+        "symbol": "GTT.PA",
+        "type": "stock",
+        "shares": 10
+      },
+      {
+        "name": "Air Liquide",
+        "symbol": "AI.PA",
+        "type": "stock",
+        "shares": 10
+      }
+    ],
+    "cryptos": [
+      {
+        "name": "Bitcoin",
+        "symbol": "BTC-USD",
+        "type": "crypto",
+        "shares": 1
+      },
+      {
+        "name": "Ethereum",
+        "symbol": "ETH-USD",
+        "type": "crypto",
+        "shares": 1
+      }
+    ]
+  },
+  "accounts": [
+    {
+      "name": "Compte principal BP",
+      "value": 10
+    },
+    {
+      "name": "Livret A",
+      "value": 10
+    },
+    {
+      "name": "Livret Jeune",
+      "value": 10
+    },
+    {
+      "name": "Compte Boursobank",
+      "value": 10
+    },
+    {
+      "name": "Cash Bourse",
+      "value": 10
+    }
+  ]
+}
