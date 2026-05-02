@@ -1,15 +1,19 @@
 package ui
 
 import (
+	"os/exec"
+	"runtime"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
 	"invest-tracker-tui/internal/config"
 	"invest-tracker-tui/internal/fetch"
-	"invest-tracker-tui/internal/utils"
 )
 
+const yahooURL = "https://fr.finance.yahoo.com/"
 
+// Model holds the full application state for the Bubbletea runtime.
 type Model struct {
 	config         config.Config
 	quotes         []fetch.Quote
@@ -22,7 +26,7 @@ type Model struct {
 	height         int
 }
 
-
+// NewModel returns an initial Model ready to fetch quotes.
 func NewModel(cfg config.Config) Model {
 	return Model{
 		config:  cfg,
@@ -49,6 +53,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loading = true
 			m.err = nil
 			return m, fetch.QuotesCmd(m.config)
+		case "y":
+			return m, openBrowserCmd(yahooURL)
 		}
 		return m, nil
 
@@ -69,27 +75,45 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	if m.loading {
-		return bgStyle.Render("Chargement…")
+		return bgStyle.Render(renderLoading())
 	}
-
 	if m.err != nil {
-		return bgStyle.Render("Erreur : " + m.err.Error() + "\n\nr : rafraîchir • q : quitter")
+		return bgStyle.Render(renderError(m.err))
 	}
 
-	header := titleStyle.Render("Invest Tracker TUI")
-
-	kpi1 := renderKPI("Portefeuille", utils.FormatEUR(m.portfolioTotal), 24)
-	kpi2 := renderKPI("Comptes", utils.FormatEUR(m.accountsTotal), 24)
-	kpi3 := renderKPI("Total", utils.FormatEUR(m.total), 24)
-	kpis := lipgloss.JoinHorizontal(lipgloss.Top, kpi1, " ", kpi2, " ", kpi3)
-
-	table := renderQuotesTable(m.quotes)
-	accounts := renderAccounts(m.config.Accounts)
-	footer := mutedStyle.Render("r : rafraîchir • q : quitter")
+	sep := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(colorBorder)).
+		Render("")
 
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		header, kpis, "", table, "", accounts, "", footer,
+		renderHeader(m.width),
+		"",
+		renderKPIs(m.portfolioTotal, m.accountsTotal, m.total),
+		"",
+		sep,
+		renderPortfolioTable(m.quotes),
+		"",
+		renderAccounts(m.config.Accounts),
+		"",
+		renderFooter(),
 	)
 
 	return bgStyle.Render(content)
+}
+
+// openBrowserCmd opens the given URL in the default system browser.
+func openBrowserCmd(url string) tea.Cmd {
+	return func() tea.Msg {
+		var cmd *exec.Cmd
+		switch runtime.GOOS {
+		case "darwin":
+			cmd = exec.Command("open", url)
+		case "windows":
+			cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+		default:
+			cmd = exec.Command("xdg-open", url)
+		}
+		_ = cmd.Start()
+		return nil
+	}
 }
