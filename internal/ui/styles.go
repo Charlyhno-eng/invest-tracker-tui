@@ -53,6 +53,7 @@ var (
 	// Asset type badge styles.
 	badgeStockStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color(colorAmber))
 	badgeCryptoStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(colorCyan))
+	badgeEtfStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color(colorTextMid))
 
 	// Change column styles.
 	posStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(colorGreen))

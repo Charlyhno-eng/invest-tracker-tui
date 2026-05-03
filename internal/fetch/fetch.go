@@ -2,9 +2,7 @@ package fetch
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"sort"
 	"time"
 
@@ -14,7 +12,7 @@ import (
 	"invest-tracker-tui/internal/utils"
 )
 
-
+// Quote holds a live-priced asset with its computed portfolio value.
 type Quote struct {
 	Name          string
 	Symbol        string
@@ -25,6 +23,7 @@ type Quote struct {
 	Value         float64
 }
 
+// QuotesMsg is the Bubbletea message returned after fetching all portfolio quotes.
 type QuotesMsg struct {
 	Quotes         []Quote
 	PortfolioTotal float64
@@ -33,6 +32,7 @@ type QuotesMsg struct {
 	Err            error
 }
 
+// yahooMeta maps the fields we need from the Yahoo Finance v8 chart meta object.
 type yahooMeta struct {
 	Currency           string  `json:"currency"`
 	RegularMarketPrice float64 `json:"regularMarketPrice"`
@@ -48,7 +48,7 @@ type yahooChartResponse struct {
 	} `json:"chart"`
 }
 
-
+// QuotesCmd returns a Bubbletea command that fetches live quotes for all portfolio assets.
 func QuotesCmd(cfg config.Config) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -60,8 +60,8 @@ func QuotesCmd(cfg config.Config) tea.Cmd {
 		}
 
 		assets := cfg.Portfolio.AllAssets()
-
 		quotes := make([]Quote, 0, len(assets))
+
 		for _, asset := range assets {
 			q, err := fetchYahooQuote(ctx, asset, eurUSD)
 			if err != nil {
@@ -120,8 +120,8 @@ func fetchYahooQuote(ctx context.Context, asset config.PortfolioAsset, eurUSD fl
 	}
 
 	if asset.Type == config.AssetTypeCrypto {
-		price = price / eurUSD
-		prev = prev / eurUSD
+		price /= eurUSD
+		prev /= eurUSD
 	}
 
 	changePct := ((price - prev) / prev) * 100
@@ -138,24 +138,18 @@ func fetchYahooQuote(ctx context.Context, asset config.PortfolioAsset, eurUSD fl
 }
 
 func fetchYahooMeta(ctx context.Context, symbol string) (*yahooMeta, error) {
-	url := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s?interval=1d&range=1d", symbol)
+	url := fmt.Sprintf(
+		"https://query1.finance.yahoo.com/v8/finance/chart/%s?interval=1d&range=1d",
+		symbol,
+	)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	body, err := fetchRaw(ctx, url)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0")
-	req.Header.Set("Accept", "application/json")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
 
 	var payload yahooChartResponse
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+	if err := decodeJSON(body, &payload); err != nil {
 		return nil, err
 	}
 

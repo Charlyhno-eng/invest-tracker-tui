@@ -12,6 +12,7 @@ import (
 	"invest-tracker-tui/internal/utils"
 )
 
+
 // ── Header ────────────────────────────────────────────────────────────────────
 
 func renderHeader(width int) string {
@@ -109,6 +110,8 @@ func badgeForType(t config.AssetType) string {
 	switch t {
 	case config.AssetTypeCrypto:
 		return badgeCryptoStyle.Width(7).Render("CRYPTO")
+	case config.AssetTypeETF:
+		return badgeEtfStyle.Width(7).Render("ETF   ")
 	default:
 		return badgeStockStyle.Width(7).Render("STOCK ")
 	}
@@ -139,16 +142,116 @@ func renderAccounts(accounts []config.Account) string {
 	return lipgloss.JoinVertical(lipgloss.Left, section, strings.Join(rows, "\n"))
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// ── Dashboard footer ──────────────────────────────────────────────────────────
 
 func renderFooter() string {
 	keys := []struct{ key, desc string }{
 		{"r", "refresh"},
+		{"w", "watchlist"},
 		{"y", "Yahoo Finance"},
 		{"q", "quit"},
 	}
 
-	parts := make([]string, 0, len(keys)*2)
+	parts := make([]string, 0, len(keys)*3)
+	for i, k := range keys {
+		parts = append(parts, keyStyle.Render(k.key))
+		parts = append(parts, footerStyle.Render(" "+k.desc))
+		if i < len(keys)-1 {
+			parts = append(parts, footerStyle.Render("  ·  "))
+		}
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Left, parts...)
+}
+
+// ── Watchlist view ────────────────────────────────────────────────────────────
+
+func renderWatchlist(sections []fetch.WatchSection, width int) string {
+	now := time.Now().Format("01/02/2006  15:04:05")
+	logo := logoStyle.Render("▸ WATCHLIST")
+	ts := subtitleStyle.Render(now)
+
+	gap := width - lipgloss.Width(logo) - lipgloss.Width(ts) - 6
+	if gap < 1 {
+		gap = 1
+	}
+	top := lipgloss.JoinHorizontal(lipgloss.Top, logo, strings.Repeat(" ", gap), ts)
+	headerLine := headerLineStyle.Render(strings.Repeat("─", width-6))
+	header := lipgloss.JoinVertical(lipgloss.Left, top, headerLine)
+
+	// Column widths: name(24) symbol(10) price(12) 1d(9) 7d(9) 30d(9) 90d(9) 365d(9) ath(12) athdiff(10)
+	colHeader := lipgloss.JoinHorizontal(lipgloss.Left,
+		tableHeaderStyle.Width(24).Render("NAME"),
+		tableHeaderStyle.Width(10).Render("SYMBOL"),
+		tableHeaderStyle.Width(12).Render("PRICE"),
+		tableHeaderStyle.Width(9).Render("1D"),
+		tableHeaderStyle.Width(9).Render("7D"),
+		tableHeaderStyle.Width(9).Render("30D"),
+		tableHeaderStyle.Width(9).Render("90D"),
+		tableHeaderStyle.Width(9).Render("1Y"),
+		tableHeaderStyle.Width(14).Render("ATH (1Y)"),
+		tableHeaderStyle.Width(10).Render("vs ATH"),
+	)
+
+	lines := []string{header, ""}
+
+	for _, sec := range sections {
+		secTitle := sectionStyle.Render(strings.ToUpper(sec.Name))
+		secLine := sectionLineStyle.Render(strings.Repeat("─", 60))
+		lines = append(lines, secTitle, secLine, colHeader)
+
+		sep := cellDimStyle.Render(strings.Repeat("·", 115))
+		lines = append(lines, sep)
+
+		for _, p := range sec.Items {
+			lines = append(lines, renderWatchRow(p))
+		}
+		lines = append(lines, "")
+	}
+
+	lines = append(lines, renderWatchlistFooter())
+
+	return strings.Join(lines, "\n")
+}
+
+func renderWatchRow(p fetch.WatchPerf) string {
+	perfCell := func(v float64, w int) string {
+		s := utils.FormatPercent(v)
+		if v > 0 {
+			return posStyle.Width(w).Render(s)
+		}
+		return negStyle.Width(w).Render(s)
+	}
+
+	athDiffCell := func(v float64) string {
+		if v == 0 {
+			return posStyle.Width(10).Render("ATH")
+		}
+		return negStyle.Width(10).Render(fmt.Sprintf("%.2f%%", v))
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		cellStyle.Width(24).Render(utils.Truncate(p.Name, 23)),
+		symbolStyle.Width(10).Render(p.Symbol),
+		cellStyle.Width(12).Render(utils.FormatEUR(p.Price)),
+		perfCell(p.Perf1d, 9),
+		perfCell(p.Perf7d, 9),
+		perfCell(p.Perf30d, 9),
+		perfCell(p.Perf90d, 9),
+		perfCell(p.Perf365d, 9),
+		cellDimStyle.Width(14).Render(utils.FormatEUR(p.ATH)),
+		athDiffCell(p.ATHDiff),
+	)
+}
+
+func renderWatchlistFooter() string {
+	keys := []struct{ key, desc string }{
+		{"r", "refresh"},
+		{"b / esc", "back"},
+		{"q", "quit"},
+	}
+
+	parts := make([]string, 0, len(keys)*3)
 	for i, k := range keys {
 		parts = append(parts, keyStyle.Render(k.key))
 		parts = append(parts, footerStyle.Render(" "+k.desc))

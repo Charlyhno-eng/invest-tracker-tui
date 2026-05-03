@@ -41,3 +41,17 @@ func Round(v float64, places int) float64 {
 	}
 	return float64(int(v*pow-0.5)) / pow
 }
+
+// FormatVolume formats a volume integer with K/M/B suffix.
+func FormatVolume(v int64) string {
+	switch {
+	case v >= 1_000_000_000:
+		return fmt.Sprintf("%.2fB", float64(v)/1_000_000_000)
+	case v >= 1_000_000:
+		return fmt.Sprintf("%.2fM", float64(v)/1_000_000)
+	case v >= 1_000:
+		return fmt.Sprintf("%.2fK", float64(v)/1_000)
+	default:
+		return fmt.Sprintf("%d", v)
+	}
+}

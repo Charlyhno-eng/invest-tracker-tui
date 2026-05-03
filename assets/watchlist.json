@@ -1,0 +1,25 @@
+{
+  "sectors": [
+    {
+      "name": "Tech",
+      "items": [
+        { "name": "Apple",  "symbol": "AAPL",    "type": "stock" },
+        { "name": "Tesla",  "symbol": "TSLA",    "type": "stock" }
+      ]
+    },
+    {
+      "name": "ETF",
+      "items": [
+        { "name": "S&P 500", "symbol": "SPY", "type": "etf" }
+      ]
+    },
+    {
+      "name": "Crypto",
+      "items": [
+        { "name": "Bitcoin",  "symbol": "BTC-USD",  "type": "crypto" },
+        { "name": "Ethereum", "symbol": "ETH-USD",  "type": "crypto" },
+        { "name": "Tether",   "symbol": "USDT-USD", "type": "crypto" }
+      ]
+    }
+  ]
+}

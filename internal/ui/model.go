@@ -13,24 +13,43 @@ import (
 
 const yahooURL = "https://fr.finance.yahoo.com/"
 
-// Model holds the full application state for the Bubbletea runtime.
+
+type appView int
+
+const (
+	viewDashboard appView = iota
+	viewWatchlist
+)
+
 type Model struct {
-	config         config.Config
+	config    config.Config
+	watchlist config.Watchlist
+
+	// Dashboard state.
 	quotes         []fetch.Quote
 	portfolioTotal float64
 	accountsTotal  float64
 	total          float64
-	err            error
 	loading        bool
-	width          int
-	height         int
+	err            error
+
+	// Watchlist state.
+	watchSections  []fetch.WatchSection
+	watchLoading   bool
+	watchErr       error
+
+	view   appView
+	width  int
+	height int
 }
 
+
 // NewModel returns an initial Model ready to fetch quotes.
-func NewModel(cfg config.Config) Model {
+func NewModel(cfg config.Config, wl config.Watchlist) Model {
 	return Model{
-		config:  cfg,
-		loading: true,
+		config:    cfg,
+		watchlist: wl,
+		loading:   true,
 	}
 }
 
@@ -46,17 +65,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		case "r":
-			m.loading = true
-			m.err = nil
-			return m, fetch.QuotesCmd(m.config)
-		case "y":
-			return m, openBrowserCmd(yahooURL)
-		}
-		return m, nil
+		return m.handleKey(msg.String())
 
 	case fetch.QuotesMsg:
 		m.loading = false
@@ -68,12 +77,67 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.total = msg.Total
 		}
 		return m, nil
+
+	case fetch.WatchlistMsg:
+		m.watchLoading = false
+		m.watchErr = msg.Err
+		if msg.Err == nil {
+			m.watchSections = msg.Sections
+		}
+		return m, nil
 	}
 
 	return m, nil
 }
 
+func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
+	switch m.view {
+	case viewWatchlist:
+		switch key {
+		case "esc", "b":
+			m.view = viewDashboard
+			m.watchErr = nil
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "r":
+			m.watchLoading = true
+			m.watchErr = nil
+			return m, fetch.WatchlistCmd(m.watchlist)
+		}
+		return m, nil
+
+	default: // viewDashboard
+		switch key {
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "r":
+			m.loading = true
+			m.err = nil
+			return m, fetch.QuotesCmd(m.config)
+		case "y":
+			return m, openBrowserCmd(yahooURL)
+		case "w":
+			m.view = viewWatchlist
+			if m.watchSections == nil {
+				m.watchLoading = true
+				return m, fetch.WatchlistCmd(m.watchlist)
+			}
+			return m, nil
+		}
+	}
+	return m, nil
+}
+
 func (m Model) View() string {
+	switch m.view {
+	case viewWatchlist:
+		return m.renderWatchlistView()
+	default:
+		return m.renderDashboardView()
+	}
+}
+
+func (m Model) renderDashboardView() string {
 	if m.loading {
 		return bgStyle.Render(renderLoading())
 	}
@@ -99,6 +163,16 @@ func (m Model) View() string {
 	)
 
 	return bgStyle.Render(content)
+}
+
+func (m Model) renderWatchlistView() string {
+	if m.watchLoading {
+		return bgStyle.Render(renderLoading())
+	}
+	if m.watchErr != nil {
+		return bgStyle.Render(renderError(m.watchErr))
+	}
+	return bgStyle.Render(renderWatchlist(m.watchSections, m.width))
 }
 
 // openBrowserCmd opens the given URL in the default system browser.
