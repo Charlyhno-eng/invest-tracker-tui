@@ -1,24 +1,23 @@
 {
   "sectors": [
     {
-      "name": "Tech",
+      "name": "Micro cap PEA",
       "items": [
-        { "name": "Apple",  "symbol": "AAPL",    "type": "stock" },
-        { "name": "Tesla",  "symbol": "TSLA",    "type": "stock" }
+        { "name": "Riber",            "symbol": "RI7.SG",    "type": "stock" },
+        { "name": "Stif France SAS",  "symbol": "D08.SG",    "type": "stock" }
       ]
     },
     {
       "name": "ETF",
       "items": [
-        { "name": "S&P 500", "symbol": "SPY", "type": "etf" }
+        { "name": "VanEck Uranium and Nuclear", "symbol": "NUCL.L", "type": "etf" }
       ]
     },
     {
       "name": "Crypto",
       "items": [
-        { "name": "Bitcoin",  "symbol": "BTC-USD",  "type": "crypto" },
-        { "name": "Ethereum", "symbol": "ETH-USD",  "type": "crypto" },
-        { "name": "Tether",   "symbol": "USDT-USD", "type": "crypto" }
+        { "name": "Monero",  "symbol": "XMR-EUR",  "type": "crypto" },
+        { "name": "Hyperliquid",  "symbol": "HYPE32196-USD",  "type": "crypto" }
       ]
     }
   ]
